@@ -1,0 +1,48 @@
+[package]
+name = "genesis-backend"
+version = "0.1.0"
+edition = "2021"
+authors = ["Genesis AI <genesis@example.com>"]
+description = "Rust backend for Genesis AI-powered software generator"
+license = "MIT"
+repository = "https://github.com/genesis-ai/genesis"
+keywords = ["ai", "code-generation", "api", "actix-web"]
+categories = ["web-programming", "api-bindings"]
+
+[dependencies]
+actix-web = "4.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+actix-cors = "0.6"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+env_logger = "0.10"
+log = "0.4"
+config = "0.13"
+dotenv = "0.15"
+anyhow = "1.0"
+thiserror = "1.0"
+validator = { version = "0.16", features = ["derive"] }
+regex = "1.0"
+lazy_static = "1.4"
+num_cpus = "1.0"
+
+[dev-dependencies]
+actix-rt = "2.9"
+actix-test = "0.1"
+tokio-test = "0.4"
+mockito = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+overflow-checks = false
+
+[profile.dev]
+opt-level = 0
+debug = true 

@@ -1,0 +1,398 @@
+GENESIS AI-POWERED SOFTWARE GENERATOR - COMPLETE SETUP GUIDE
+================================================================
+
+This guide provides step-by-step instructions to recreate the Genesis project using Cursor AI.
+Each section includes specific prompts you can use with Cursor AI to generate the code.
+
+PROJECT OVERVIEW:
+Genesis is a desktop application that generates complete software projects (React, Flutter, Electron)
+from high-level prompts using a multi-agent AI system with local Ollama models.
+
+ARCHITECTURE:
+- Frontend: Tauri + React + TypeScript
+- Backend: Rust (Actix-web) 
+- AI Core: Python FastAPI + CrewAI + Ollama
+- Code Validation: Tree-Sitter
+
+================================================================
+
+SECTION 1: PROJECT INITIALIZATION
+================================================================
+
+CURSOR AI PROMPT:
+"Create a new directory structure for a project called 'genesis' with the following folders:
+- genesis/ (Tauri frontend)
+- backend/ (Rust API server)
+- ai_core/ (Python AI module) 
+- tree_sitter/ (Code validation)
+Create a README.md file explaining this is an AI-powered software generator project."
+
+TERMINAL COMMANDS:
+```bash
+mkdir genesis
+cd genesis
+git init
+mkdir backend ai_core tree_sitter
+```
+
+================================================================
+
+SECTION 2: TAURI FRONTEND SETUP
+================================================================
+
+CURSOR AI PROMPT:
+"Initialize a new Tauri project with React and TypeScript. The project should be called 'genesis' 
+and use npm as the package manager. Include Tailwind CSS for styling and Chakra UI for components."
+
+TERMINAL COMMANDS:
+```bash
+npm create tauri-app
+# Choose: genesis, React, TypeScript, npm
+cd genesis
+npm install @chakra-ui/react @emotion/react @emotion/styled framer-motion lucide-react
+npm install tailwindcss @tauri-apps/api tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-dart
+npx tailwindcss init
+```
+
+CURSOR AI PROMPT:
+"Create a modern React application in src/App.tsx with the following features:
+- Beautiful UI using Chakra UI and Tailwind CSS
+- Prompt input area for project descriptions
+- File tree display for generated files
+- Terminal output display
+- Generate button with loading states
+- Project history section
+Use a dark theme with blue accents and include proper TypeScript types."
+
+CURSOR AI PROMPT:
+"Create a tailwind.config.js file configured for the React frontend with content paths 
+pointing to src/**/*.{tsx,ts} and extend the theme with custom colors."
+
+CURSOR AI PROMPT:
+"Update package.json to include all necessary dependencies for the Tauri React app including
+Chakra UI, Framer Motion, Lucide React icons, and Tree-Sitter packages."
+
+================================================================
+
+SECTION 3: RUST BACKEND SETUP
+================================================================
+
+CURSOR AI PROMPT:
+"Create a new Rust project in the backend/ directory with Actix-web for the API server.
+The server should handle project generation requests and relay them to the Python AI core."
+
+TERMINAL COMMANDS:
+```bash
+cd backend
+cargo init
+```
+
+CURSOR AI PROMPT:
+"Create a Cargo.toml file with the following dependencies:
+- actix-web = "4.4"
+- serde = { version = "1.0", features = ["derive"] }
+- serde_json = "1.0"
+- reqwest = { version = "0.11", features = ["json"] }
+- tokio = { version = "1.0", features = ["full"] }
+- actix-cors = "0.6"
+- chrono = { version = "0.4", features = ["serde"] }"
+
+CURSOR AI PROMPT:
+"Create a Rust Actix-web server in src/main.rs with the following endpoints:
+- POST /generate - Accepts project prompts and relays to Python AI core
+- GET /health - Health check endpoint
+- GET /projects - List generated projects
+Include proper error handling, CORS middleware, and JSON serialization/deserialization."
+
+CURSOR AI PROMPT:
+"Add a ProjectRecord struct with fields: id, prompt, files, output, created_at.
+Add an ApiResponse struct with fields: success, message, data.
+Add a HealthResponse struct with fields: status, timestamp, services."
+
+================================================================
+
+SECTION 4: PYTHON AI CORE SETUP
+================================================================
+
+CURSOR AI PROMPT:
+"Create a Python virtual environment and install the required packages for the AI core:
+fastapi, pydantic, crewai, crewai-tools, uvicorn, python-dotenv, langchain-ollama, requests"
+
+TERMINAL COMMANDS:
+```bash
+cd ai_core
+python -m venv venv
+# On Windows: venv\Scripts\activate
+# On Linux/Mac: source venv/bin/activate
+pip install fastapi pydantic crewai crewai-tools uvicorn python-dotenv langchain-ollama requests
+```
+
+CURSOR AI PROMPT:
+"Create a FastAPI application in main.py with the following features:
+- POST /run endpoint that accepts project prompts
+- GET /health endpoint for Ollama connectivity check
+- GET / root endpoint
+- CORS middleware enabled
+- Proper error handling and logging"
+
+CURSOR AI PROMPT:
+"Create a get_llm() function that returns an OllamaLLM instance configured for:
+- model: 'qwen2.5-coder:1.5b-base' (or available model)
+- base_url: 'http://localhost:11434'
+- temperature: 0.7
+- timeout: 120"
+
+CURSOR AI PROMPT:
+"Create three CrewAI agents:
+1. Planner Agent - Creates project plans in JSON format
+2. Coder Agent - Generates code files based on plans
+3. Debugger Agent - Analyzes and fixes code errors
+Each agent should have specific roles, goals, and backstories for software development."
+
+CURSOR AI PROMPT:
+"Create a create_tasks() function that defines three tasks:
+1. Plan Task - Create project structure and dependencies
+2. Code Task - Generate actual code files
+3. Debug Task - Validate and fix generated code
+Each task should have clear descriptions and expected outputs."
+
+CURSOR AI PROMPT:
+"Create a run_crew() function that:
+- Accepts a Prompt model with prompt and backend fields
+- Creates agents and tasks
+- Runs the CrewAI workflow
+- Parses results and returns ProjectResponse
+- Handles errors gracefully
+- Saves results to project_manifest.json"
+
+CURSOR AI PROMPT:
+"Create Pydantic models:
+- Prompt: prompt (str), backend (str, default 'ollama')
+- ProjectResponse: files (List[str]), output (str)"
+
+CURSOR AI PROMPT:
+"Create a health_check() function that:
+- Tests Ollama connectivity at http://localhost:11434/api/tags
+- Returns status of Ollama backend
+- Handles connection errors gracefully"
+
+================================================================
+
+SECTION 5: TREE-SITTER VALIDATION SETUP
+================================================================
+
+CURSOR AI PROMPT:
+"Create a Node.js project in tree_sitter/ directory for code validation using Tree-Sitter."
+
+TERMINAL COMMANDS:
+```bash
+cd tree_sitter
+npm init -y
+npm install tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-dart
+```
+
+CURSOR AI PROMPT:
+"Create a validate.js script that:
+- Accepts language and code as command line arguments
+- Uses Tree-Sitter to parse and validate code
+- Returns JSON with validation results
+- Supports JavaScript, TypeScript, and Dart
+- Handles syntax errors and provides line numbers"
+
+CURSOR AI PROMPT:
+"Create a Python tools.py module in ai_core/ that:
+- Calls the Tree-Sitter validation script
+- Returns validation results as JSON
+- Handles subprocess execution errors
+- Supports multiple programming languages"
+
+================================================================
+
+SECTION 6: OLLAMA SETUP
+================================================================
+
+CURSOR AI PROMPT:
+"Create an ollama_setup.md file with detailed instructions for:
+- Installing Ollama from https://ollama.ai/
+- Pulling required models (llama3.1:8b, qwen2.5-coder:1.5b-base)
+- Testing Ollama connectivity
+- Troubleshooting common issues
+- Performance optimization tips"
+
+TERMINAL COMMANDS:
+```bash
+# Install Ollama (download from https://ollama.ai/)
+ollama serve
+ollama pull qwen2.5-coder:1.5b-base
+ollama pull llama3.1:8b
+```
+
+CURSOR AI PROMPT:
+"Create a test_ollama.py script that:
+- Tests Ollama connection
+- Tests basic text generation
+- Tests CrewAI integration
+- Provides detailed error messages
+- Suggests troubleshooting steps"
+
+CURSOR AI PROMPT:
+"Create a start_ollama.py script that:
+- Checks Ollama status before starting server
+- Validates required models are available
+- Starts the FastAPI server with uvicorn
+- Provides user-friendly error messages"
+
+================================================================
+
+SECTION 7: TESTING AND VALIDATION
+================================================================
+
+CURSOR AI PROMPT:
+"Create a test_api.py script that:
+- Tests the health endpoint
+- Tests project generation endpoint
+- Provides detailed output and error reporting
+- Uses proper timeout handling
+- Validates response formats"
+
+CURSOR AI PROMPT:
+"Create a validate_genesis.ps1 PowerShell script that:
+- Checks all prerequisites (Node.js, Rust, Python, Git)
+- Validates Python packages are installed
+- Tests Ollama connectivity
+- Provides clear status messages"
+
+TERMINAL COMMANDS:
+```bash
+# Test each component
+cd ai_core && python test_ollama.py
+cd ai_core && python test_api.py
+cd backend && cargo check
+cd genesis && npm run build
+```
+
+================================================================
+
+SECTION 8: CONFIGURATION FILES
+================================================================
+
+CURSOR AI PROMPT:
+"Create a requirements.txt file in ai_core/ with all Python dependencies:
+fastapi, pydantic, crewai, crewai-tools, uvicorn, python-dotenv, langchain-ollama, requests"
+
+CURSOR AI PROMPT:
+"Create a pyproject.toml file in ai_core/ with:
+- Black configuration (line-length = 88)
+- isort configuration
+- mypy configuration
+- Build system requirements"
+
+CURSOR AI PROMPT:
+"Create a .gitignore file in the root directory that excludes:
+- Python virtual environments
+- Node modules
+- Rust target directories
+- Build artifacts
+- Environment files
+- Log files"
+
+================================================================
+
+SECTION 9: STARTUP AND DEPLOYMENT
+================================================================
+
+CURSOR AI PROMPT:
+"Create startup scripts for each component:
+1. start_ai_core.bat/.sh - Starts Python FastAPI server
+2. start_backend.bat/.sh - Starts Rust Actix-web server  
+3. start_frontend.bat/.sh - Starts Tauri development server
+4. start_all.bat/.sh - Starts all components in sequence"
+
+CURSOR AI PROMPT:
+"Create a README.md file in the root directory that includes:
+- Project overview and architecture
+- Prerequisites and installation
+- Quick start guide
+- Development instructions
+- Troubleshooting section
+- API documentation"
+
+TERMINAL COMMANDS:
+```bash
+# Start all components
+# Terminal 1: AI Core
+cd ai_core && uvicorn main:app --host 127.0.0.1 --port 8000
+
+# Terminal 2: Backend  
+cd backend && cargo run
+
+# Terminal 3: Frontend
+cd genesis && npm run tauri dev
+```
+
+================================================================
+
+SECTION 10: TROUBLESHOOTING PROMPTS
+================================================================
+
+CURSOR AI PROMPT:
+"If getting 'ModuleNotFoundError: No module named langchain_ollama':
+- Run: pip install langchain-ollama
+- Check virtual environment is activated
+- Verify requirements.txt is up to date"
+
+CURSOR AI PROMPT:
+"If getting 'litellm.AuthenticationError':
+- Ensure Ollama is running: ollama serve
+- Check model is available: ollama list
+- Pull required model: ollama pull qwen2.5-coder:1.5b-base"
+
+CURSOR AI PROMPT:
+"If getting 'Connection refused' errors:
+- Check all services are running on correct ports
+- Verify firewall settings
+- Test connectivity: curl http://localhost:11434/api/tags"
+
+CURSOR AI PROMPT:
+"If CrewAI agents are not generating proper output:
+- Simplify agent prompts for local models
+- Reduce temperature to 0.3-0.5
+- Use smaller models for faster responses
+- Add more specific task descriptions"
+
+================================================================
+
+FINAL VALIDATION CHECKLIST:
+================================================================
+
+□ Ollama installed and running
+□ Required models downloaded
+□ Python virtual environment created
+□ All dependencies installed
+□ FastAPI server starts without errors
+□ Rust backend compiles successfully
+□ Tauri frontend builds without errors
+□ Health endpoints respond correctly
+□ Project generation endpoint works
+□ File tree displays generated files
+□ Error handling works properly
+
+================================================================
+
+USAGE EXAMPLE:
+================================================================
+
+1. Start Ollama: ollama serve
+2. Start AI Core: cd ai_core && uvicorn main:app --host 127.0.0.1 --port 8000
+3. Start Backend: cd backend && cargo run
+4. Start Frontend: cd genesis && npm run tauri dev
+5. Enter prompt: "Create a React todo app with add, delete, and mark complete functionality"
+6. Click Generate and wait for results
+
+================================================================
+
+This guide provides all the necessary prompts and commands to recreate the Genesis project
+from scratch using Cursor AI. Each section can be implemented independently, and the
+project will work once all components are properly configured and running.
+
+For additional help, refer to the individual component documentation and error logs. 
