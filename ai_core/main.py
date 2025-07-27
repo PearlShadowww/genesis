@@ -12,15 +12,24 @@ from datetime import datetime
 import json
 import logging
 import requests
+import os
+import shutil
 from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create projects directory
+# Create genesis directory in Documents
+DOCUMENTS_DIR = Path.home() / "Documents"
+GENESIS_DIR = DOCUMENTS_DIR / "genesis"
+GENESIS_DIR.mkdir(exist_ok=True)
+
+# Create projects directory for manifests
 PROJECTS_DIR = Path("projects")
 PROJECTS_DIR.mkdir(exist_ok=True)
+
+logger.info(f"Genesis directory created at: {GENESIS_DIR}")
 
 # Models
 class Prompt(BaseModel):
@@ -35,6 +44,7 @@ class GeneratedFile(BaseModel):
 class ProjectResponse(BaseModel):
     files: List[GeneratedFile]
     output: str
+    project_path: str
 
 class ApiResponse(BaseModel):
     success: bool
@@ -85,25 +95,115 @@ def call_ollama_directly(prompt: str, model: str = "llama3.1:8b") -> str:
         logger.error(f"Ollama call failed: {e}")
         raise e
 
-def save_project_manifest(project_id: str, prompt_data: Prompt, project_response: ProjectResponse):
-    """Save project manifest to disk"""
+def get_project_name_from_prompt(prompt: str) -> str:
+    """Extract a suitable project name from the prompt"""
     try:
-        manifest = {
-            "project_id": project_id,
-            "prompt": prompt_data.prompt,
-            "backend": prompt_data.backend,
-            "generated_at": datetime.now().isoformat(),
-            "files": [file.model_dump() for file in project_response.files],
-            "output": project_response.output
-        }
+        # Ask LLM to suggest a project name
+        name_prompt = f"""Based on this project description, suggest a short, descriptive project name (max 25 characters, use hyphens for spaces):
+
+Description: {prompt}
+
+Requirements:
+- Make it descriptive and specific to the project
+- Use hyphens instead of spaces
+- Keep it under 25 characters
+- Make it unique and meaningful
+
+Examples:
+- "react-todo-app" for a React todo application
+- "python-web-scraper" for a Python web scraper
+- "node-express-api" for a Node.js Express API
+
+Return only the project name, nothing else."""
         
-        manifest_path = PROJECTS_DIR / f"{project_id}_manifest.json"
-        with open(manifest_path, "w", encoding="utf-8") as f:
-            json.dump(manifest, f, indent=2, ensure_ascii=False)
-            
-        logger.info(f"Saved project manifest: {manifest_path}")
+        response = call_ollama_directly(name_prompt)
+        name = response.strip().replace(" ", "-").replace("_", "-").lower()
+        
+        # Clean up the name
+        name = "".join(c for c in name if c.isalnum() or c == "-")
+        name = name.strip("-")
+        
+        if not name or len(name) > 20:
+            # Fallback to timestamp-based name
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            name = f"project-{timestamp}"
+        
+        return name
     except Exception as e:
-        logger.error(f"Failed to save project manifest: {e}")
+        logger.error(f"Failed to generate project name: {e}")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"project-{timestamp}"
+
+def create_project_structure_with_llm(prompt: str, project_name: str) -> List[GeneratedFile]:
+    """Use LLM to determine project structure and generate files"""
+    try:
+        # Ask LLM to determine project structure
+        structure_prompt = f"""Based on this project description, create a complete project structure with all necessary files:
+
+Project Description: {prompt}
+Project Name: {project_name}
+
+Analyze the requirements and create a JSON array of file objects with this structure:
+[
+  {{
+    "name": "filename.ext",
+    "content": "complete file content here",
+    "language": "file extension or language"
+  }}
+]
+
+Requirements:
+1. Create files specific to the project type (React, Python, Node.js, etc.)
+2. Include all necessary configuration files
+3. Include proper package.json with relevant dependencies
+4. Include a comprehensive README.md
+5. Include main source files with actual implementation
+6. Include any additional files needed for the project to work
+
+Examples:
+- For React projects: package.json, src/App.js, src/index.js, public/index.html, README.md
+- For Python projects: requirements.txt, main.py, README.md, .gitignore
+- For Node.js projects: package.json, index.js, README.md, .env.example
+
+Return only valid JSON, no explanations or markdown formatting."""
+
+        response = call_ollama_directly(structure_prompt)
+        
+        # Try to parse the JSON response
+        try:
+            # Clean up the response to extract JSON
+            response = response.strip()
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.endswith("```"):
+                response = response[:-3]
+            response = response.strip()
+            
+            files_data = json.loads(response)
+            
+            # Convert to GeneratedFile objects
+            files = []
+            for file_data in files_data:
+                if isinstance(file_data, dict) and 'name' in file_data and 'content' in file_data:
+                    files.append(GeneratedFile(
+                        name=file_data['name'],
+                        content=file_data['content'],
+                        language=file_data.get('language', 'text')
+                    ))
+            
+            if files:
+                return files
+                
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse LLM JSON response: {e}")
+            logger.error(f"Response was: {response}")
+        
+        # Fallback to basic structure
+        return create_basic_project_structure(prompt, "LLM structure generation failed")
+        
+    except Exception as e:
+        logger.error(f"Failed to create project structure with LLM: {e}")
+        return create_basic_project_structure(prompt, str(e))
 
 def create_basic_project_structure(prompt: str, error_msg: str = "") -> List[GeneratedFile]:
     """Create basic project structure as fallback"""
@@ -182,6 +282,53 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     
     return files
 
+def save_project_to_disk(project_name: str, files: List[GeneratedFile]) -> str:
+    """Save project files to disk in the genesis folder"""
+    try:
+        project_path = GENESIS_DIR / project_name
+        project_path.mkdir(exist_ok=True)
+        
+        logger.info(f"Creating project at: {project_path}")
+        
+        for file in files:
+            file_path = project_path / file.name
+            
+            # Create parent directories if needed
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write file content
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(file.content)
+            
+            logger.info(f"Created file: {file_path}")
+        
+        return str(project_path)
+        
+    except Exception as e:
+        logger.error(f"Failed to save project to disk: {e}")
+        raise e
+
+def save_project_manifest(project_id: str, prompt_data: Prompt, project_response: ProjectResponse):
+    """Save project manifest to disk"""
+    try:
+        manifest = {
+            "project_id": project_id,
+            "prompt": prompt_data.prompt,
+            "backend": prompt_data.backend,
+            "generated_at": datetime.now().isoformat(),
+            "files": [file.model_dump() for file in project_response.files],
+            "output": project_response.output,
+            "project_path": project_response.project_path
+        }
+        
+        manifest_path = PROJECTS_DIR / f"{project_id}_manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
+            
+        logger.info(f"Saved project manifest: {manifest_path}")
+    except Exception as e:
+        logger.error(f"Failed to save project manifest: {e}")
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -190,6 +337,7 @@ async def root():
         message="Genesis AI Core is running",
         data={
             "version": "1.0.0",
+            "genesis_dir": str(GENESIS_DIR),
             "endpoints": {
                 "health": "/health",
                 "generate": "/run"
@@ -207,6 +355,7 @@ async def health_check():
             timestamp=datetime.now().isoformat(),
             services={
                 "ollama": "available",
+                "genesis_dir": str(GENESIS_DIR),
                 "crewai": "bypassed"
             }
         )
@@ -231,119 +380,28 @@ async def run_generation(prompt_data: Prompt):
         
         # Create project ID
         project_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        project_dir = PROJECTS_DIR / project_id
-        project_dir.mkdir(exist_ok=True)
         
-        files = []
+        # Get project name from LLM
+        project_name = get_project_name_from_prompt(prompt_data.prompt)
+        logger.info(f"Generated project name: {project_name}")
         
-        try:
-            # Generate package.json
-            package_prompt = f"""Create a package.json file for a React project described as: {prompt_data.prompt}
-
-Return only valid JSON, no explanations or markdown formatting."""
-            
-            package_content = call_ollama_directly(package_prompt)
-            # Clean up the response to ensure it's valid JSON
-            package_content = package_content.strip()
-            if not package_content.startswith("{"):
-                # Fallback to basic package.json
-                package_content = json.dumps({
-                    "name": "generated-project",
-                    "version": "1.0.0",
-                    "description": f"Generated from: {prompt_data.prompt}",
-                    "dependencies": {
-                        "react": "^18.0.0",
-                        "react-dom": "^18.0.0"
-                    }
-                }, indent=2)
-            
-            files.append(GeneratedFile(
-                name="package.json",
-                content=package_content,
-                language="json"
-            ))
-            
-            # Generate main component
-            component_prompt = f"""Create a React TypeScript component for: {prompt_data.prompt}
-
-Return only the TypeScript/JavaScript code, no explanations or markdown formatting."""
-            
-            component_content = call_ollama_directly(component_prompt)
-            # Clean up the response
-            component_content = component_content.strip()
-            if not component_content.startswith("import") and not component_content.startswith("function"):
-                # Fallback to basic component
-                component_content = f"""import React from 'react';
-
-function App() {{
-  return (
-    <div className="App">
-      <h1>Generated App</h1>
-      <p>This app was generated from: {prompt_data.prompt}</p>
-      <p>Generated by Genesis AI Core</p>
-    </div>
-  );
-}}
-
-export default App;"""
-            
-            files.append(GeneratedFile(
-                name="src/App.tsx",
-                content=component_content,
-                language="typescript"
-            ))
-            
-            # Generate README
-            readme_prompt = f"""Create a README.md for a project described as: {prompt_data.prompt}
-
-Return only the markdown content, no explanations."""
-            
-            readme_content = call_ollama_directly(readme_prompt)
-            # Clean up the response
-            readme_content = readme_content.strip()
-            if not readme_content.startswith("#"):
-                # Fallback to basic README
-                readme_content = f"""# Generated Project
-
-This project was generated by Genesis AI Core.
-
-## Original Prompt
-{prompt_data.prompt}
-
-## Files Generated
-- package.json - Project configuration
-- src/App.tsx - Main React component
-- README.md - This file
-
-## Getting Started
-1. Install dependencies: `npm install`
-2. Start development server: `npm start`
-3. Open http://localhost:3000
-
-Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-            
-            files.append(GeneratedFile(
-                name="README.md",
-                content=readme_content,
-                language="markdown"
-            ))
-            
-        except Exception as e:
-            logger.error(f"LLM generation failed: {e}")
-            # Fallback to basic files
-            files = create_basic_project_structure(prompt_data.prompt, str(e))
+        # Use LLM to determine project structure and generate files
+        files = create_project_structure_with_llm(prompt_data.prompt, project_name)
+        
+        # Save project to disk
+        project_path = save_project_to_disk(project_name, files)
         
         # Create response
         project_response = ProjectResponse(
             files=files,
-            output=f"Successfully generated {len(files)} files from prompt: {prompt_data.prompt}"
+            output=f"Successfully generated {len(files)} files in project '{project_name}' at: {project_path}",
+            project_path=project_path
         )
         
         # Save project manifest
         save_project_manifest(project_id, prompt_data, project_response)
         
-        logger.info(f"Project {project_id} generated successfully with {len(files)} files")
+        logger.info(f"Project {project_name} generated successfully with {len(files)} files at {project_path}")
         
         return ApiResponse(
             success=True,

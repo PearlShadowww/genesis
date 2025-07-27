@@ -207,6 +207,7 @@ async fn generate_project_async(
         status: Some(ProjectStatus::Generating),
         files: None,
         output: None,
+        project_path: None,
         metadata: None,
     };
     
@@ -281,17 +282,23 @@ async fn update_project_with_results(
         }
     }
     
-    // Parse output
+    // Parse output and project path
     let output = data.get("data")
         .and_then(|d| d.get("output"))
         .and_then(|o| o.as_str())
         .unwrap_or("")
         .to_string();
     
+    let project_path = data.get("data")
+        .and_then(|d| d.get("project_path"))
+        .and_then(|p| p.as_str())
+        .map(|s| s.to_string());
+    
     let update = ProjectUpdate {
         status: Some(ProjectStatus::Completed),
         files: Some(files),
         output: Some(output),
+        project_path,
         metadata: None,
     };
     
@@ -316,6 +323,7 @@ async fn mark_project_failed(
         status: Some(ProjectStatus::Failed),
         files: None,
         output: Some(error_message.clone()),
+        project_path: None,
         metadata: None,
     };
     

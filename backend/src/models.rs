@@ -32,6 +32,7 @@ pub struct ProjectRecord {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub backend: String,
+    pub project_path: Option<String>,
     pub metadata: Option<serde_json::Value>,
 }
 
@@ -70,6 +71,7 @@ pub struct ProjectUpdate {
     pub status: Option<ProjectStatus>,
     pub files: Option<Vec<GeneratedFile>>,
     pub output: Option<String>,
+    pub project_path: Option<String>,
     pub metadata: Option<serde_json::Value>,
 }
 
@@ -87,6 +89,7 @@ impl ProjectRecord {
             created_at: now,
             updated_at: now,
             backend,
+            project_path: None,
             metadata: None,
         }
     }

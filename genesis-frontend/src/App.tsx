@@ -16,31 +16,17 @@ import {
   Flex,
   IconButton,
   Tooltip,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Select,
-  Input,
-  Switch,
-  FormControl,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  Stack,
-  Tag,
-  TagLabel,
-  Wrap,
-  WrapItem,
-  Progress,
   Alert,
   AlertIcon,
   List,
   ListItem,
   ListIcon,
-  Grid,
-  GridItem,
+  Container,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Divider,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import {
   Play,
@@ -48,24 +34,19 @@ import {
   FileText,
   Terminal,
   History,
-  Settings,
-  Download,
-  Copy,
-  Code as CodeIcon,
-  Plus,
-  Trash2,
   RefreshCw,
   CheckCircle,
-  Rocket,
-  Package,
-  Users,
-  BarChart3,
-  BookOpen,
-  ShoppingCart,
-  Layers,
+  Code as CodeIcon,
+  Copy,
+  Download,
+  Send,
+  Sparkles,
+  Zap,
+  Globe,
+  Settings,
 } from 'lucide-react';
 
-// Enhanced interfaces for comprehensive features
+// Simplified interfaces
 interface GeneratedFile {
   name: string;
   content: string;
@@ -80,50 +61,11 @@ interface ProjectHistory {
   timestamp: Date;
   status: 'success' | 'error' | 'pending';
   files: GeneratedFile[];
-  projectType?: string;
-  framework?: string;
-  complexity?: string;
-}
-
-interface ProjectTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: any;
-  tags: string[];
-  complexity: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: string;
-  features: string[];
-}
-
-interface GenerationSettings {
-  framework: string;
-  language: string;
-  complexity: string;
-  includeTests: boolean;
-  includeDocs: boolean;
-  includeCI: boolean;
-  includeDocker: boolean;
-  includeAPI: boolean;
-  includeDatabase: boolean;
-  includeAuth: boolean;
-  includeUI: boolean;
-  customFeatures: string[];
-}
-
-interface ProjectStructure {
-  type: 'monorepo' | 'microservices' | 'single-app' | 'spa' | 'ssr';
-  frontend: string[];
-  backend: string[];
-  database: string[];
-  infrastructure: string[];
-  testing: string[];
-  documentation: string[];
+  project_path?: string;
 }
 
 function App() {
-  // State management for comprehensive features
+  // Simplified state management
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
@@ -131,109 +73,15 @@ function App() {
   const [projectHistory, setProjectHistory] = useState<ProjectHistory[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'connected' | 'disconnected'>('disconnected');
-  const [activeTab, setActiveTab] = useState(0);
-  const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
-    framework: 'react',
-    language: 'typescript',
-    complexity: 'intermediate',
-    includeTests: true,
-    includeDocs: true,
-    includeCI: false,
-    includeDocker: false,
-    includeAPI: true,
-    includeDatabase: false,
-    includeAuth: false,
-    includeUI: true,
-    customFeatures: [],
-  });
-  const [projectStructure, setProjectStructure] = useState<ProjectStructure>({
-    type: 'single-app',
-    frontend: ['components', 'pages', 'hooks', 'utils'],
-    backend: ['api', 'middleware', 'models'],
-    database: ['migrations', 'seeds'],
-    infrastructure: ['docker', 'kubernetes'],
-    testing: ['unit', 'integration', 'e2e'],
-    documentation: ['readme', 'api-docs', 'deployment'],
-  });
-  const [, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
-  // const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
   
   const toast = useToast();
-  // Modal controls for future use
-  const onHistoryOpen = () => toast({ title: 'History', description: 'History panel coming soon', status: 'info' });
-  const onSettingsOpen = () => toast({ title: 'Settings', description: 'Settings panel coming soon', status: 'info' });
 
-  // Project templates for quick start
-  const projectTemplates: ProjectTemplate[] = [
-    {
-      id: 'ecommerce',
-      name: 'E-commerce Platform',
-      description: 'Full-stack e-commerce with payment integration',
-      category: 'Business',
-      icon: ShoppingCart,
-      tags: ['react', 'nodejs', 'mongodb', 'stripe'],
-      complexity: 'advanced',
-      estimatedTime: '2-3 hours',
-      features: ['User authentication', 'Product catalog', 'Shopping cart', 'Payment processing', 'Order management', 'Admin dashboard'],
-    },
-    {
-      id: 'social-media',
-      name: 'Social Media App',
-      description: 'Social networking platform with real-time features',
-      category: 'Social',
-      icon: Users,
-      tags: ['react', 'socket.io', 'postgresql', 'redis'],
-      complexity: 'advanced',
-      estimatedTime: '3-4 hours',
-      features: ['User profiles', 'Posts & comments', 'Real-time messaging', 'News feed', 'Friend system', 'Notifications'],
-    },
-    {
-      id: 'task-manager',
-      name: 'Task Management App',
-      description: 'Project management with team collaboration',
-      category: 'Productivity',
-      icon: CheckCircle,
-      tags: ['react', 'express', 'sqlite', 'jwt'],
-      complexity: 'intermediate',
-      estimatedTime: '1-2 hours',
-      features: ['Task creation', 'Team collaboration', 'Progress tracking', 'File sharing', 'Calendar integration', 'Reports'],
-    },
-    {
-      id: 'blog-platform',
-      name: 'Blog Platform',
-      description: 'Content management system for bloggers',
-      category: 'Content',
-      icon: BookOpen,
-      tags: ['nextjs', 'prisma', 'postgresql', 'markdown'],
-      complexity: 'intermediate',
-      estimatedTime: '1-2 hours',
-      features: ['Article editor', 'SEO optimization', 'Comment system', 'User management', 'Analytics', 'RSS feeds'],
-    },
-    {
-      id: 'dashboard',
-      name: 'Analytics Dashboard',
-      description: 'Data visualization and analytics platform',
-      category: 'Analytics',
-      icon: BarChart3,
-      tags: ['react', 'd3', 'express', 'mongodb'],
-      complexity: 'advanced',
-      estimatedTime: '2-3 hours',
-      features: ['Data visualization', 'Real-time charts', 'Export functionality', 'User permissions', 'Custom reports', 'API integration'],
-    },
-    {
-      id: 'mobile-app',
-      name: 'Mobile App',
-      description: 'Cross-platform mobile application',
-      category: 'Mobile',
-      icon: Users, // Changed from Smartphone to Users as per new_code
-      tags: ['react-native', 'expo', 'firebase', 'redux'],
-      complexity: 'advanced',
-      estimatedTime: '2-3 hours',
-      features: ['Cross-platform', 'Push notifications', 'Offline support', 'Camera integration', 'GPS tracking', 'Social sharing'],
-    },
-  ];
+  // Color mode values for better visibility
+  const bgColor = useColorModeValue('white', 'gray.900');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const inputBg = useColorModeValue('white', 'gray.800');
+  const cardBg = useColorModeValue('white', 'gray.800');
 
   // Check backend health on component mount
   useEffect(() => {
@@ -288,83 +136,33 @@ function App() {
     setIsGenerating(true);
     setTerminalOutput([]);
     setGeneratedFiles([]);
-    setGenerationProgress(0);
 
     try {
       addTerminalOutput('🚀 Starting project generation...');
       addTerminalOutput(`📝 Prompt: ${prompt}`);
-      addTerminalOutput('⚙️ Applying generation settings...');
       
-      // Simulate generation steps
-      const steps = [
-        'Analyzing requirements...',
-        'Designing architecture...',
-        'Generating frontend components...',
-        'Creating backend API...',
-        'Setting up database...',
-        'Adding authentication...',
-        'Implementing features...',
-        'Writing tests...',
-        'Creating documentation...',
-        'Finalizing project...'
-      ];
+      // Call backend API
+      const response = await fetch('http://127.0.0.1:8080/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          backend: 'ollama'
+        }),
+      });
 
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentStep(steps[i]);
-        setGenerationProgress((i + 1) * 10);
-        addTerminalOutput(`🔄 ${steps[i]}`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status}`);
       }
 
-      // Simulate generated files
-      const mockFiles: GeneratedFile[] = [
-        {
-          name: 'package.json',
-          content: JSON.stringify({ name: 'generated-project', version: '1.0.0' }, null, 2),
-          language: 'json',
-          size: 1024,
-          lastModified: new Date(),
-        },
-        {
-          name: 'src/App.tsx',
-          content: 'import React from "react";\n\nfunction App() {\n  return <div>Generated App</div>;\n}\n\nexport default App;',
-          language: 'typescript',
-          size: 2048,
-          lastModified: new Date(),
-        },
-        {
-          name: 'README.md',
-          content: '# Generated Project\n\nThis project was generated by Genesis AI.',
-          language: 'markdown',
-          size: 512,
-          lastModified: new Date(),
-        },
-      ];
+      const result = await response.json();
+      addTerminalOutput('✅ Project generation request sent successfully');
+      addTerminalOutput(`📋 Project ID: ${result.data}`);
 
-      setGeneratedFiles(mockFiles);
-      addTerminalOutput('✅ Project generation completed!');
-      
-      // Add to history
-      const newProject: ProjectHistory = {
-        id: Date.now().toString(),
-        prompt,
-        timestamp: new Date(),
-        status: 'success',
-        files: mockFiles,
-        projectType: generationSettings.framework,
-        framework: generationSettings.language,
-        complexity: generationSettings.complexity,
-      };
-      
-      setProjectHistory(prev => [newProject, ...prev]);
-      
-      toast({
-        title: 'Success',
-        description: `Project generated successfully! Created ${mockFiles.length} files.`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      // Poll for project status
+      await pollProjectStatus(result.data);
 
     } catch (error) {
       console.error('Generation error:', error);
@@ -389,9 +187,88 @@ function App() {
       });
     } finally {
       setIsGenerating(false);
-      setGenerationProgress(0);
-      setCurrentStep('');
     }
+  };
+
+  const pollProjectStatus = async (projectId: string) => {
+    const maxAttempts = 30; // 30 seconds max
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8080/projects/${projectId}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          const project = result.data;
+
+          addTerminalOutput(`📊 Status: ${project.status}`);
+
+          if (project.status === 'completed') {
+            addTerminalOutput('✅ Project generation completed!');
+            
+            // Convert files to our format
+            const files: GeneratedFile[] = project.files.map((file: any) => ({
+              name: file.name,
+              content: file.content,
+              language: file.language,
+              size: file.size,
+              lastModified: file.last_modified ? new Date(file.last_modified) : new Date(),
+            }));
+
+            setGeneratedFiles(files);
+            
+            // Add to history
+            const newProject: ProjectHistory = {
+              id: projectId,
+              prompt,
+              timestamp: new Date(project.created_at),
+              status: 'success',
+              files: files,
+              project_path: project.project_path,
+            };
+            
+            setProjectHistory(prev => [newProject, ...prev]);
+            
+            toast({
+              title: 'Success',
+              description: `Project generated successfully! Created ${files.length} files.`,
+              status: 'success',
+              duration: 5000,
+              isClosable: true,
+            });
+            return;
+
+          } else if (project.status === 'failed') {
+            addTerminalOutput(`❌ Project generation failed: ${project.output}`);
+            
+            const failedProject: ProjectHistory = {
+              id: projectId,
+              prompt,
+              timestamp: new Date(project.created_at),
+              status: 'error',
+              files: [],
+            };
+            
+            setProjectHistory(prev => [failedProject, ...prev]);
+            return;
+
+          } else {
+            // Still generating, wait and try again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+          }
+        } else {
+          throw new Error(`Failed to get project status: ${response.status}`);
+        }
+      } catch (error) {
+        addTerminalOutput(`❌ Error polling project status: ${error}`);
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    addTerminalOutput('⏰ Project generation timed out');
   };
 
   const addTerminalOutput = (message: string) => {
@@ -419,754 +296,335 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  const downloadProject = () => {
-    // Create a zip file with all generated files
-    toast({
-      title: 'Download Started',
-      description: 'Project files are being prepared for download...',
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
-    });
-  };
-
-  const applyTemplate = (template: ProjectTemplate) => {
-    setSelectedTemplate(template);
-    setPrompt(`Create a ${template.name.toLowerCase()} with the following features: ${template.features.join(', ')}`);
-    
-    // Update generation settings based on template
-    const templateSettings = { ...generationSettings };
-    if (template.tags.includes('react')) templateSettings.framework = 'react';
-    if (template.tags.includes('typescript')) templateSettings.language = 'typescript';
-    if (template.complexity === 'advanced') templateSettings.complexity = 'advanced';
-    
-    setGenerationSettings(templateSettings);
-    
-    toast({
-      title: 'Template Applied',
-      description: `${template.name} template has been applied`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      handleGenerate();
+    }
   };
 
   return (
     <ChakraProvider>
-      <Box minH="100vh" bg="black" color="white">
+      <Box minH="100vh" bg={bgColor} color={textColor}>
         {/* Header */}
-        <Box bg="gray.900" borderBottom="1px" borderColor="gray.800" p={4}>
-          <HStack justify="space-between">
-            <HStack>
-              <CodeIcon size={32} color="#ff8c00" />
-              <VStack align="start" spacing={0}>
-                <Heading size="lg" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Genesis</Heading>
-                <Text fontSize="sm" color="gray.300">AI-Powered Software Generator</Text>
-              </VStack>
+        <Box 
+          bg={cardBg} 
+          borderBottom="1px" 
+          borderColor={borderColor} 
+          p={4}
+          boxShadow="sm"
+        >
+          <Container maxW="7xl">
+            <HStack justify="space-between">
+              <HStack spacing={3}>
+                <Box p={2} bg="blue.500" borderRadius="lg">
+                  <Sparkles size={24} color="white" />
+                </Box>
+                <VStack align="start" spacing={0}>
+                  <Heading size="lg" color="blue.500" fontWeight="bold">Genesis</Heading>
+                  <Text fontSize="sm" color="gray.500">AI-Powered Code Generator</Text>
+                </VStack>
+              </HStack>
+              <HStack spacing={4}>
+                <Badge 
+                  colorScheme={backendStatus === 'connected' ? 'green' : 'red'}
+                  variant="subtle"
+                  px={3}
+                  py={1}
+                  borderRadius="full"
+                >
+                  {backendStatus === 'connected' ? 'Connected' : 'Disconnected'}
+                </Badge>
+                <Tooltip label="Refresh connection">
+                  <IconButton
+                    aria-label="Refresh connection"
+                    icon={<RefreshCw size={18} />}
+                    variant="ghost"
+                    colorScheme="blue"
+                    onClick={checkBackendHealth}
+                    size="sm"
+                  />
+                </Tooltip>
+              </HStack>
             </HStack>
-            <HStack spacing={4}>
-              <Badge 
-                colorScheme={backendStatus === 'connected' ? 'green' : 'red'}
-                variant="subtle"
-              >
-                {backendStatus === 'connected' ? 'Connected' : 'Disconnected'}
-              </Badge>
-              <Tooltip label="Project History">
-                <IconButton
-                  aria-label="Project History"
-                  icon={<History size={20} />}
-                  variant="ghost"
-                  colorScheme="orange"
-                  onClick={onHistoryOpen}
-                />
-              </Tooltip>
-              <Tooltip label="Advanced Settings">
-                <IconButton
-                  aria-label="Advanced Settings"
-                  icon={<Settings size={20} />}
-                  variant="ghost"
-                  colorScheme="orange"
-                  onClick={onSettingsOpen}
-                />
-              </Tooltip>
-              <Tooltip label="Refresh connection">
-                <IconButton
-                  aria-label="Refresh connection"
-                  icon={<RefreshCw size={20} />}
-                  variant="ghost"
-                  colorScheme="orange"
-                  onClick={checkBackendHealth}
-                />
-              </Tooltip>
-            </HStack>
-          </HStack>
+          </Container>
         </Box>
 
-        <Flex h="calc(100vh - 80px)">
-          {/* Main Content */}
-          <VStack flex={1} p={6} spacing={6} align="stretch">
+        <Container maxW="7xl" py={8}>
+          <VStack spacing={8} align="stretch">
             {/* Connection Status Alert */}
             {backendStatus === 'disconnected' && (
-              <Alert status="error" borderRadius="md" bg="red.900" borderColor="red.700">
+              <Alert status="error" borderRadius="lg" bg="red.50" borderColor="red.200">
                 <AlertIcon />
                 <Box>
-                  <Text fontWeight="bold">Genesis backend is not running</Text>
-                  <Text fontSize="sm">Please start the backend server: cd backend && cargo run</Text>
+                  <Text fontWeight="bold" color="red.800">Genesis backend is not running</Text>
+                  <Text fontSize="sm" color="red.600">Please start the backend server: cd backend && cargo run</Text>
                 </Box>
               </Alert>
             )}
 
-            {/* Main Tabs */}
-            <Tabs index={activeTab} onChange={setActiveTab} variant="enclosed" colorScheme="orange">
-              <TabList>
-                <Tab>🚀 Quick Start</Tab>
-                <Tab>⚙️ Advanced</Tab>
-                <Tab>📋 Templates</Tab>
-                <Tab>🏗️ Structure</Tab>
-                <Tab>📊 Results</Tab>
-              </TabList>
-
-              <TabPanels>
-                {/* Quick Start Tab */}
-                <TabPanel>
-                  <VStack spacing={6} align="stretch">
-                    <Card bg="gray.900" borderColor="gray.800">
-                      <CardHeader>
-                        <HStack>
-                          <Rocket size={20} color="#ff8c00" />
-                          <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Quick Project Generation</Heading>
-                        </HStack>
-                      </CardHeader>
-                      <CardBody>
-                        <VStack spacing={4}>
-                          <Textarea
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="Describe the software project you want to generate... (e.g., 'Create a React todo app with add, delete, and mark complete functionality')"
-                            size="lg"
-                            bg="gray.800"
-                            borderColor="gray.700"
-                            _focus={{ borderColor: 'orange.400' }}
-                            rows={4}
-                          />
-                          <HStack spacing={4} w="full">
-                            <Select
-                              value={generationSettings.framework}
-                              onChange={(e) => setGenerationSettings(prev => ({ ...prev, framework: e.target.value }))}
-                              bg="gray.800"
-                              borderColor="gray.700"
-                            >
-                              <option value="react">React</option>
-                              <option value="vue">Vue.js</option>
-                              <option value="angular">Angular</option>
-                              <option value="nextjs">Next.js</option>
-                              <option value="nuxt">Nuxt.js</option>
-                              <option value="svelte">Svelte</option>
-                              <option value="flutter">Flutter</option>
-                              <option value="react-native">React Native</option>
-                            </Select>
-                            <Select
-                              value={generationSettings.language}
-                              onChange={(e) => setGenerationSettings(prev => ({ ...prev, language: e.target.value }))}
-                              bg="gray.800"
-                              borderColor="gray.700"
-                            >
-                              <option value="typescript">TypeScript</option>
-                              <option value="javascript">JavaScript</option>
-                              <option value="python">Python</option>
-                              <option value="java">Java</option>
-                              <option value="csharp">C#</option>
-                              <option value="go">Go</option>
-                              <option value="rust">Rust</option>
-                            </Select>
-                            <Select
-                              value={generationSettings.complexity}
-                              onChange={(e) => setGenerationSettings(prev => ({ ...prev, complexity: e.target.value }))}
-                              bg="gray.800"
-                              borderColor="gray.700"
-                            >
-                              <option value="beginner">Beginner</option>
-                              <option value="intermediate">Intermediate</option>
-                              <option value="advanced">Advanced</option>
-                            </Select>
-                          </HStack>
-                          <Button
-                            leftIcon={<Play size={20} />}
-                            bgGradient="linear(to-r, orange.400, yellow.400)"
-                            _hover={{ bgGradient: "linear(to-r, orange.500, yellow.500)" }}
-                            color="black"
-                            size="lg"
-                            onClick={handleGenerate}
-                            isLoading={isGenerating}
-                            loadingText="Generating..."
-                            w="full"
-                            isDisabled={backendStatus === 'disconnected'}
-                          >
-                            Generate Project
-                          </Button>
-                        </VStack>
-                      </CardBody>
-                    </Card>
-
-                    {/* Generation Progress */}
-                    {isGenerating && (
-                      <Card bg="gray.900" borderColor="gray.800">
-                        <CardBody>
-                          <VStack spacing={4}>
-                            <Text fontWeight="medium">{currentStep}</Text>
-                            <Progress 
-                              value={generationProgress} 
-                              bg="gray.800"
-                              sx={{
-                                '& > div': {
-                                  background: 'linear-gradient(to right, #ff8c00, #ffd700)'
-                                }
-                              }}
-                              size="lg" 
-                              w="full" 
-                            />
-                            <Text fontSize="sm" color="gray.300">{generationProgress}% Complete</Text>
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    )}
+            {/* Main Input Section */}
+            <Card bg={cardBg} borderColor={borderColor} boxShadow="lg">
+              <CardBody p={8}>
+                <VStack spacing={6}>
+                  <VStack spacing={2} textAlign="center">
+                    <Heading size="lg" color="gray.700">
+                      Generate Code with AI
+                    </Heading>
+                    <Text color="gray.500" fontSize="lg">
+                      Describe what you want to build and let AI create it for you
+                    </Text>
                   </VStack>
-                </TabPanel>
 
-                {/* Advanced Tab */}
-                <TabPanel>
-                  <VStack spacing={6} align="stretch">
-                    <Card bg="gray.900" borderColor="gray.800">
-                      <CardHeader>
-                        <HStack>
-                          <Settings size={20} color="#ff8c00" />
-                          <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Advanced Generation Settings</Heading>
-                        </HStack>
-                      </CardHeader>
-                      <CardBody>
-                        <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-                          <GridItem>
-                            <VStack spacing={4} align="stretch">
-                              <FormControl>
-                                <FormLabel>Framework</FormLabel>
-                                <Select
-                                  value={generationSettings.framework}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, framework: e.target.value }))}
-                                  bg="gray.800"
-                                  borderColor="gray.700"
-                                >
-                                  <option value="react">React</option>
-                                  <option value="vue">Vue.js</option>
-                                  <option value="angular">Angular</option>
-                                  <option value="nextjs">Next.js</option>
-                                  <option value="nuxt">Nuxt.js</option>
-                                  <option value="svelte">Svelte</option>
-                                  <option value="flutter">Flutter</option>
-                                  <option value="react-native">React Native</option>
-                                </Select>
-                              </FormControl>
-
-                              <FormControl>
-                                <FormLabel>Language</FormLabel>
-                                <Select
-                                  value={generationSettings.language}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, language: e.target.value }))}
-                                  bg="gray.800"
-                                  borderColor="gray.700"
-                                >
-                                  <option value="typescript">TypeScript</option>
-                                  <option value="javascript">JavaScript</option>
-                                  <option value="python">Python</option>
-                                  <option value="java">Java</option>
-                                  <option value="csharp">C#</option>
-                                  <option value="go">Go</option>
-                                  <option value="rust">Rust</option>
-                                </Select>
-                              </FormControl>
-
-                              <FormControl>
-                                <FormLabel>Complexity</FormLabel>
-                                <Select
-                                  value={generationSettings.complexity}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, complexity: e.target.value }))}
-                                  bg="gray.800"
-                                  borderColor="gray.700"
-                                >
-                                  <option value="beginner">Beginner</option>
-                                  <option value="intermediate">Intermediate</option>
-                                  <option value="advanced">Advanced</option>
-                                </Select>
-                              </FormControl>
-                            </VStack>
-                          </GridItem>
-
-                          <GridItem>
-                            <VStack spacing={4} align="stretch">
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include Tests</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeTests}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeTests: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include Documentation</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeDocs}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeDocs: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include CI/CD</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeCI}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeCI: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include Docker</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeDocker}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeDocker: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include API</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeAPI}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeAPI: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include Database</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeDatabase}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeDatabase: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include Authentication</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeAuth}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeAuth: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-
-                              <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Include UI Components</FormLabel>
-                                <Switch
-                                  isChecked={generationSettings.includeUI}
-                                  onChange={(e) => setGenerationSettings(prev => ({ ...prev, includeUI: e.target.checked }))}
-                                  colorScheme="orange"
-                                />
-                              </FormControl>
-                            </VStack>
-                          </GridItem>
-                        </Grid>
-                      </CardBody>
-                    </Card>
-                  </VStack>
-                </TabPanel>
-
-                {/* Templates Tab */}
-                <TabPanel>
-                  <VStack spacing={6} align="stretch">
-                    <Card bg="gray.900" borderColor="gray.800">
-                      <CardHeader>
-                        <HStack>
-                          <Package size={20} color="#ff8c00" />
-                          <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Project Templates</Heading>
-                        </HStack>
-                      </CardHeader>
-                      <CardBody>
-                        <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6}>
-                          {projectTemplates.map((template) => (
-                            <Card key={template.id} bg="gray.800" borderColor="gray.700" cursor="pointer" _hover={{ borderColor: 'orange.400' }} onClick={() => applyTemplate(template)}>
-                              <CardBody>
-                                <VStack spacing={4} align="start">
-                                  <HStack>
-                                    <template.icon size={24} color="#ff8c00" />
-                                    <VStack align="start" spacing={0}>
-                                      <Heading size="md">{template.name}</Heading>
-                                      <Text fontSize="sm" color="gray.300">{template.category}</Text>
-                                    </VStack>
-                                  </HStack>
-                                  <Text fontSize="sm">{template.description}</Text>
-                                  <Wrap>
-                                    {template.tags.map((tag) => (
-                                      <WrapItem key={tag}>
-                                        <Tag size="sm" bgGradient="linear(to-r, orange.400, yellow.400)" color="black" variant="solid">
-                                          <TagLabel>{tag}</TagLabel>
-                                        </Tag>
-                                      </WrapItem>
-                                    ))}
-                                  </Wrap>
-                                  <HStack justify="space-between" w="full">
-                                    <Badge 
-                                      bgGradient={template.complexity === 'advanced' ? 'linear(to-r, red.400, red.600)' : template.complexity === 'intermediate' ? 'linear(to-r, orange.400, yellow.400)' : 'linear(to-r, green.400, green.600)'}
-                                      color="black"
-                                    >
-                                      {template.complexity}
-                                    </Badge>
-                                    <Text fontSize="sm" color="gray.300">{template.estimatedTime}</Text>
-                                  </HStack>
-                                  <VStack align="start" spacing={1}>
-                                    <Text fontSize="sm" fontWeight="medium">Features:</Text>
-                                    <List spacing={1}>
-                                      {template.features.slice(0, 3).map((feature, index) => (
-                                        <ListItem key={index} fontSize="sm" color="gray.300">
-                                          <ListIcon as={CheckCircle} color="#ff8c00" />
-                                          {feature}
-                                        </ListItem>
-                                      ))}
-                                      {template.features.length > 3 && (
-                                        <ListItem fontSize="sm" color="gray.400">
-                                          +{template.features.length - 3} more features
-                                        </ListItem>
-                                      )}
-                                    </List>
-                                  </VStack>
-                                </VStack>
-                              </CardBody>
-                            </Card>
-                          ))}
-                        </Grid>
-                      </CardBody>
-                    </Card>
-                  </VStack>
-                </TabPanel>
-
-                {/* Structure Tab */}
-                <TabPanel>
-                  <VStack spacing={6} align="stretch">
-                    <Card bg="gray.900" borderColor="gray.800">
-                      <CardHeader>
-                        <HStack>
-                          <Layers size={20} color="#ff8c00" />
-                          <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Project Structure Builder</Heading>
-                        </HStack>
-                      </CardHeader>
-                      <CardBody>
-                        <VStack spacing={6} align="stretch">
-                          <FormControl>
-                            <FormLabel>Project Type</FormLabel>
-                            <RadioGroup value={projectStructure.type} onChange={(value) => setProjectStructure(prev => ({ ...prev, type: value as any }))}>
-                              <Stack direction="row">
-                                <Radio value="single-app">Single App</Radio>
-                                <Radio value="monorepo">Monorepo</Radio>
-                                <Radio value="microservices">Microservices</Radio>
-                                <Radio value="spa">SPA</Radio>
-                                <Radio value="ssr">SSR</Radio>
-                              </Stack>
-                            </RadioGroup>
-                          </FormControl>
-
-                          <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-                            <VStack spacing={4} align="stretch">
-                              <Heading size="sm">Frontend Structure</Heading>
-                              <VStack spacing={2} align="stretch">
-                                {projectStructure.frontend.map((item, index) => (
-                                  <HStack key={index}>
-                                    <Input
-                                      value={item}
-                                      onChange={(e) => {
-                                        const newFrontend = [...projectStructure.frontend];
-                                        newFrontend[index] = e.target.value;
-                                        setProjectStructure(prev => ({ ...prev, frontend: newFrontend }));
-                                      }}
-                                      bg="gray.800"
-                                      borderColor="gray.700"
-                                      size="sm"
-                                    />
-                                    <IconButton
-                                      aria-label="Remove item"
-                                      icon={<Trash2 size={16} />}
-                                      size="sm"
-                                      variant="ghost"
-                                      colorScheme="red"
-                                      onClick={() => {
-                                        const newFrontend = projectStructure.frontend.filter((_, i) => i !== index);
-                                        setProjectStructure(prev => ({ ...prev, frontend: newFrontend }));
-                                      }}
-                                    />
-                                  </HStack>
-                                ))}
-                                <Button
-                                  leftIcon={<Plus size={16} />}
-                                  size="sm"
-                                  variant="outline"
-                                  borderColor="orange.400"
-                                  color="orange.400"
-                                  _hover={{ bg: 'orange.400', color: 'black' }}
-                                  onClick={() => setProjectStructure(prev => ({ ...prev, frontend: [...prev.frontend, 'new-folder'] }))}
-                                >
-                                  Add Frontend Folder
-                                </Button>
-                              </VStack>
-                            </VStack>
-
-                            <VStack spacing={4} align="stretch">
-                              <Heading size="sm">Backend Structure</Heading>
-                              <VStack spacing={2} align="stretch">
-                                {projectStructure.backend.map((item, index) => (
-                                  <HStack key={index}>
-                                    <Input
-                                      value={item}
-                                      onChange={(e) => {
-                                        const newBackend = [...projectStructure.backend];
-                                        newBackend[index] = e.target.value;
-                                        setProjectStructure(prev => ({ ...prev, backend: newBackend }));
-                                      }}
-                                      bg="gray.800"
-                                      borderColor="gray.700"
-                                      size="sm"
-                                    />
-                                    <IconButton
-                                      aria-label="Remove item"
-                                      icon={<Trash2 size={16} />}
-                                      size="sm"
-                                      variant="ghost"
-                                      colorScheme="red"
-                                      onClick={() => {
-                                        const newBackend = projectStructure.backend.filter((_, i) => i !== index);
-                                        setProjectStructure(prev => ({ ...prev, backend: newBackend }));
-                                      }}
-                                    />
-                                  </HStack>
-                                ))}
-                                <Button
-                                  leftIcon={<Plus size={16} />}
-                                  size="sm"
-                                  variant="outline"
-                                  borderColor="orange.400"
-                                  color="orange.400"
-                                  _hover={{ bg: 'orange.400', color: 'black' }}
-                                  onClick={() => setProjectStructure(prev => ({ ...prev, backend: [...prev.backend, 'new-folder'] }))}
-                                >
-                                  Add Backend Folder
-                                </Button>
-                              </VStack>
-                            </VStack>
-                          </Grid>
-                        </VStack>
-                      </CardBody>
-                    </Card>
-                  </VStack>
-                </TabPanel>
-
-                {/* Results Tab */}
-                <TabPanel>
-                  <VStack spacing={6} align="stretch">
-                    {/* Generated Files */}
-                    {generatedFiles.length > 0 && (
-                      <Card bg="gray.900" borderColor="gray.800">
-                        <CardHeader>
-                          <HStack justify="space-between">
-                            <HStack>
-                              <FolderOpen size={20} color="#ff8c00" />
-                              <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Generated Files</Heading>
-                              <Badge bgGradient="linear(to-r, green.400, green.600)" color="black">{generatedFiles.length} files</Badge>
-                            </HStack>
-                            <HStack>
-                              <Button
-                                leftIcon={<Download size={16} />}
-                                size="sm"
-                                variant="outline"
-                                borderColor="orange.400"
-                                color="orange.400"
-                                _hover={{ bg: 'orange.400', color: 'black' }}
-                                onClick={downloadProject}
-                              >
-                                Download All
-                              </Button>
-                            </HStack>
-                          </HStack>
-                        </CardHeader>
-                        <CardBody>
-                          <VStack spacing={4} align="stretch">
-                            {generatedFiles.map((file, index) => (
-                              <Box
-                                key={index}
-                                p={4}
-                                bg="gray.800"
-                                borderRadius="md"
-                                border="1px"
-                                borderColor="gray.700"
-                                cursor="pointer"
-                                _hover={{ borderColor: 'orange.400' }}
-                                onClick={() => setSelectedFile(file.name)}
-                              >
-                                <HStack justify="space-between">
-                                  <HStack>
-                                    <FileText size={16} color="#ff8c00" />
-                                    <Text fontWeight="medium">{file.name}</Text>
-                                    <Badge size="sm" bgGradient="linear(to-r, orange.400, yellow.400)" color="black">{file.language}</Badge>
-                                    {file.size && (
-                                      <Text fontSize="sm" color="gray.300">({Math.round(file.size / 1024)}KB)</Text>
-                                    )}
-                                  </HStack>
-                                  <HStack spacing={2}>
-                                    <Tooltip label="Copy code">
-                                      <IconButton
-                                        aria-label="Copy code"
-                                        size="sm"
-                                        icon={<Copy size={14} />}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          copyToClipboard(file.content);
-                                        }}
-                                        variant="ghost"
-                                        colorScheme="orange"
-                                      />
-                                    </Tooltip>
-                                    <Tooltip label="Download file">
-                                      <IconButton
-                                        aria-label="Download file"
-                                        size="sm"
-                                        icon={<Download size={14} />}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          downloadFile(file);
-                                        }}
-                                        variant="ghost"
-                                        colorScheme="green"
-                                      />
-                                    </Tooltip>
-                                  </HStack>
-                                </HStack>
-                              </Box>
-                            ))}
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    )}
-
-                    {/* Terminal Output */}
-                    <Card bg="gray.900" borderColor="gray.800">
-                      <CardHeader>
-                        <HStack>
-                          <Terminal size={20} color="#ff8c00" />
-                          <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Generation Log</Heading>
-                        </HStack>
-                      </CardHeader>
-                      <CardBody>
-                        <Box
-                          bg="black"
-                          p={4}
-                          borderRadius="md"
-                          fontFamily="mono"
-                          fontSize="sm"
-                          maxH="300px"
-                          overflowY="auto"
-                        >
-                          {terminalOutput.length > 0 ? (
-                            terminalOutput.map((line, index) => (
-                              <Text key={index} color="gray.300">{line}</Text>
-                            ))
-                          ) : (
-                            <Text color="gray.500">No output yet...</Text>
-                          )}
-                        </Box>
-                      </CardBody>
-                    </Card>
-                  </VStack>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </VStack>
-
-          {/* Sidebar */}
-          <Box w="400px" bg="gray.900" borderLeft="1px" borderColor="gray.800" p={4}>
-            <VStack spacing={6} align="stretch">
-              {/* Project History */}
-              <Box>
-                <HStack mb={4}>
-                  <History size={20} color="#ff8c00" />
-                  <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">Project History</Heading>
-                </HStack>
-                <VStack spacing={3} align="stretch" maxH="300px" overflowY="auto">
-                  {projectHistory.map((project) => (
-                    <Box
-                      key={project.id}
-                      p={3}
-                      bg="gray.800"
-                      borderRadius="md"
-                      cursor="pointer"
-                      _hover={{ bg: 'gray.700' }}
+                  <VStack spacing={4} w="full">
+                    <Textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Describe the software project you want to generate... (e.g., 'Create a React todo app with add, delete, and mark complete functionality')"
+                      size="lg"
+                      bg={inputBg}
+                      borderColor={borderColor}
+                      _focus={{ 
+                        borderColor: 'blue.400',
+                        boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)',
+                        bg: inputBg
+                      }}
+                      _placeholder={{ color: 'gray.400' }}
+                      rows={4}
+                      fontSize="md"
+                      resize="none"
+                    />
+                    
+                    <Button
+                      leftIcon={<Zap size={20} />}
+                      bg="blue.500"
+                      _hover={{ bg: 'blue.600' }}
+                      _active={{ bg: 'blue.700' }}
+                      color="white"
+                      size="lg"
+                      onClick={handleGenerate}
+                      isLoading={isGenerating}
+                      loadingText="Generating..."
+                      w="full"
+                      isDisabled={backendStatus === 'disconnected'}
+                      borderRadius="lg"
+                      py={6}
+                      fontSize="md"
+                      fontWeight="semibold"
                     >
-                      <VStack align="start" spacing={2}>
-                        <HStack justify="space-between" w="full">
-                          <Text fontSize="sm" fontWeight="medium" noOfLines={2}>
-                            {project.prompt}
-                          </Text>
-                          <Badge
-                            size="sm"
-                            bgGradient={project.status === 'success' ? 'linear(to-r, green.400, green.600)' : 'linear(to-r, red.400, red.600)'}
-                            color="black"
-                          >
-                            {project.status}
-                          </Badge>
-                        </HStack>
-                        <Text fontSize="xs" color="gray.400">
-                          {project.timestamp.toLocaleString()}
-                        </Text>
-                        {project.framework && (
-                          <HStack spacing={2}>
-                            <Badge size="sm" variant="outline" borderColor="orange.400" color="orange.400">{project.framework}</Badge>
-                            {project.complexity && (
-                              <Badge size="sm" variant="outline" borderColor="orange.400" color="orange.400">{project.complexity}</Badge>
+                      Generate Project
+                    </Button>
+                    
+                    <Text fontSize="sm" color="gray.400">
+                      Press Ctrl+Enter to generate
+                    </Text>
+                  </VStack>
+                </VStack>
+              </CardBody>
+            </Card>
+
+            {/* Generated Files */}
+            {generatedFiles.length > 0 && (
+              <Card bg={cardBg} borderColor={borderColor} boxShadow="lg">
+                <CardHeader pb={4}>
+                  <HStack>
+                    <FolderOpen size={20} color="#3182ce" />
+                    <Heading size="md" color="gray.700">Generated Files</Heading>
+                    <Badge colorScheme="green" variant="subtle">{generatedFiles.length} files</Badge>
+                  </HStack>
+                </CardHeader>
+                <CardBody pt={0}>
+                  <VStack spacing={4} align="stretch">
+                    {generatedFiles.map((file, index) => (
+                      <Box
+                        key={index}
+                        p={4}
+                        bg={inputBg}
+                        borderRadius="lg"
+                        border="1px"
+                        borderColor={borderColor}
+                        cursor="pointer"
+                        _hover={{ borderColor: 'blue.400', bg: 'blue.50' }}
+                        onClick={() => setSelectedFile(file.name)}
+                        transition="all 0.2s"
+                      >
+                        <HStack justify="space-between">
+                          <HStack>
+                            <FileText size={16} color="#3182ce" />
+                            <Text fontWeight="medium" color="gray.700">{file.name}</Text>
+                            <Badge size="sm" colorScheme="blue" variant="subtle">{file.language}</Badge>
+                            {file.size && (
+                              <Text fontSize="sm" color="gray.500">({Math.round(file.size / 1024)}KB)</Text>
                             )}
                           </HStack>
-                        )}
-                      </VStack>
-                    </Box>
-                  ))}
-                  {projectHistory.length === 0 && (
-                    <Text color="gray.500" fontSize="sm" textAlign="center">
-                      No projects generated yet
-                    </Text>
-                  )}
-                </VStack>
-              </Box>
+                          <HStack spacing={2}>
+                            <Tooltip label="Copy code">
+                              <IconButton
+                                aria-label="Copy code"
+                                size="sm"
+                                icon={<Copy size={14} />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyToClipboard(file.content);
+                                }}
+                                variant="ghost"
+                                colorScheme="blue"
+                              />
+                            </Tooltip>
+                            <Tooltip label="Download file">
+                              <IconButton
+                                aria-label="Download file"
+                                size="sm"
+                                icon={<Download size={14} />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  downloadFile(file);
+                                }}
+                                variant="ghost"
+                                colorScheme="green"
+                              />
+                            </Tooltip>
+                          </HStack>
+                        </HStack>
+                      </Box>
+                    ))}
+                  </VStack>
+                </CardBody>
+              </Card>
+            )}
 
-              {/* File Preview */}
-              {selectedFile && (
-                <Box>
-                  <HStack mb={4}>
-                    <FileText size={20} color="#ff8c00" />
-                    <Heading size="md" bgGradient="linear(to-r, orange.400, yellow.400)" bgClip="text">File Preview</Heading>
-                  </HStack>
-                  <Box
-                    bg="black"
-                    p={4}
-                    borderRadius="md"
-                    fontFamily="mono"
-                    fontSize="sm"
-                    maxH="400px"
-                    overflowY="auto"
-                  >
-                    <Text color="gray.300">
-                      {generatedFiles.find(f => f.name === selectedFile)?.content}
-                    </Text>
-                  </Box>
+            {/* Terminal Output */}
+            <Card bg={cardBg} borderColor={borderColor} boxShadow="lg">
+              <CardHeader pb={4}>
+                <HStack>
+                  <Terminal size={20} color="#3182ce" />
+                  <Heading size="md" color="gray.700">Generation Log</Heading>
+                </HStack>
+              </CardHeader>
+              <CardBody pt={0}>
+                <Box
+                  bg="gray.50"
+                  p={4}
+                  borderRadius="lg"
+                  fontFamily="mono"
+                  fontSize="sm"
+                  maxH="300px"
+                  overflowY="auto"
+                  border="1px"
+                  borderColor={borderColor}
+                >
+                  {terminalOutput.length > 0 ? (
+                    terminalOutput.map((line, index) => (
+                      <Text key={index} color="gray.600" mb={1}>{line}</Text>
+                    ))
+                  ) : (
+                    <Text color="gray.400">No output yet...</Text>
+                  )}
                 </Box>
-              )}
-            </VStack>
-          </Box>
-        </Flex>
+              </CardBody>
+            </Card>
+          </VStack>
+        </Container>
+
+        {/* Sidebar - Fixed Position */}
+        <Box
+          position="fixed"
+          right={4}
+          top="100px"
+          w="350px"
+          bg={cardBg}
+          border="1px"
+          borderColor={borderColor}
+          borderRadius="lg"
+          boxShadow="xl"
+          p={4}
+          maxH="calc(100vh - 120px)"
+          overflowY="auto"
+        >
+          <VStack spacing={6} align="stretch">
+            {/* Project History */}
+            <Box>
+              <HStack mb={4}>
+                <History size={18} color="#3182ce" />
+                <Heading size="sm" color="gray.700">Project History</Heading>
+              </HStack>
+              <VStack spacing={3} align="stretch" maxH="200px" overflowY="auto">
+                {projectHistory.map((project) => (
+                  <Box
+                    key={project.id}
+                    p={3}
+                    bg={inputBg}
+                    borderRadius="md"
+                    cursor="pointer"
+                    _hover={{ bg: 'blue.50' }}
+                    border="1px"
+                    borderColor={borderColor}
+                  >
+                    <VStack align="start" spacing={2}>
+                      <HStack justify="space-between" w="full">
+                        <Text fontSize="sm" fontWeight="medium" noOfLines={2} color="gray.700">
+                          {project.prompt}
+                        </Text>
+                        <Badge
+                          size="sm"
+                          colorScheme={project.status === 'success' ? 'green' : 'red'}
+                          variant="subtle"
+                        >
+                          {project.status}
+                        </Badge>
+                      </HStack>
+                      <Text fontSize="xs" color="gray.500">
+                        {project.timestamp.toLocaleString()}
+                      </Text>
+                      {project.files.length > 0 && (
+                        <Text fontSize="xs" color="gray.500">
+                          {project.files.length} files generated
+                        </Text>
+                      )}
+                      {project.project_path && (
+                        <Text fontSize="xs" color="blue.500" fontWeight="medium">
+                          📁 {project.project_path.split('/').pop() || project.project_path}
+                        </Text>
+                      )}
+                    </VStack>
+                  </Box>
+                ))}
+                {projectHistory.length === 0 && (
+                  <Text color="gray.400" fontSize="sm" textAlign="center">
+                    No projects generated yet
+                  </Text>
+                )}
+              </VStack>
+            </Box>
+
+            <Divider />
+
+            {/* File Preview */}
+            {selectedFile && (
+              <Box>
+                <HStack mb={4}>
+                  <FileText size={18} color="#3182ce" />
+                  <Heading size="sm" color="gray.700">File Preview</Heading>
+                </HStack>
+                <Box
+                  bg="gray.50"
+                  p={4}
+                  borderRadius="md"
+                  fontFamily="mono"
+                  fontSize="xs"
+                  maxH="300px"
+                  overflowY="auto"
+                  border="1px"
+                  borderColor={borderColor}
+                >
+                  <Text color="gray.700">
+                    {generatedFiles.find(f => f.name === selectedFile)?.content}
+                  </Text>
+                </Box>
+              </Box>
+            )}
+          </VStack>
+        </Box>
       </Box>
     </ChakraProvider>
   );
